@@ -8,8 +8,7 @@
         android:icon="@mipmap/ic_launcher">
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="$AIzaSyD3kVJYP3LhhwDP1r6EMigSvQRwKcHoN4o" />
-            <!-- Google Maps API key, don't worry about this, it is restricted -->
+            android:value="@string/google_maps_key"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"
