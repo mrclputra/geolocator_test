@@ -15,7 +15,13 @@ class MapPage extends StatefulWidget {
   final String? long;
   final List<Marker> markers;
 
-  const MapPage({super.key, required this.updateLocation, this.lat, this.long, required this.markers});
+  const MapPage({
+    super.key, // API key
+    required this.updateLocation, // function to get lat and long
+    this.lat,
+    this.long,
+    required this.markers,
+  });
 
   @override
   State<MapPage> createState() => _MapPageState();
@@ -30,6 +36,7 @@ class _MapPageState extends State<MapPage> {
   String message = 'No Location Detected';
   LatLng? _currentPosition = const LatLng(3.1575, 101.7116); // current position on map
   bool _isLoading = false; // track loading state
+  bool _locationUpdated = false; // track if location has been updated
   GoogleMapController? _mapController; // camera control
 
   final LocationService _locationService = LocationService();
@@ -40,10 +47,12 @@ class _MapPageState extends State<MapPage> {
     super.initState();
     // set initial position from passed lat/long
     if (widget.lat != null && widget.long != null) {
+      // if position has been determined before
       _currentPosition = LatLng(double.parse(widget.lat!), double.parse(widget.long!));
       message = 'Location Detected';
     } else {
-      _currentPosition = const LatLng(3.1575, 101.7116); // default position
+      // else go to default position (no cache)
+      _currentPosition = const LatLng(3.1575, 101.7116);
     }
   }
 
@@ -72,12 +81,12 @@ class _MapPageState extends State<MapPage> {
     try {
       Position position = await _locationService.getLocation();
       setState(() {
-        // able to get latitude and longitude
+        // is able to get latitude and longitude
         String lat = '${position.latitude}';
         String long = '${position.longitude}';
         message = 'Location Detected';
         _currentPosition = LatLng(position.latitude, position.longitude);
-        widget.updateLocation(lat, long); // update MainPage's location
+        widget.updateLocation(lat, long);
 
         _selfMarker = Marker(
           markerId: const MarkerId('selfPosition'),
@@ -85,6 +94,7 @@ class _MapPageState extends State<MapPage> {
           infoWindow: const InfoWindow(title: 'My Location'),
           icon: BitmapDescriptor.defaultMarker,
         );
+        _locationUpdated = true;
       });
 
       // move camera to new location
@@ -94,14 +104,14 @@ class _MapPageState extends State<MapPage> {
         );
       }
 
-      // save location data to excel
-      final file = await _getExcelFile();
-      final excel = Excel.decodeBytes(file.readAsBytesSync());
-      Sheet sheetObject = excel['Sheet1'];
+      // // save location data to excel
+      // final file = await _getExcelFile();
+      // final excel = Excel.decodeBytes(file.readAsBytesSync());
+      // Sheet sheetObject = excel['Sheet1'];
 
-      String timestamp = DateFormat('HH:mm').format(DateTime.now());
-      sheetObject.appendRow([timestamp, _currentPosition!.latitude, _currentPosition!.longitude]);
-      file.writeAsBytesSync(excel.save()!);
+      // String timestamp = DateFormat('HH:mm').format(DateTime.now());
+      // sheetObject.appendRow([timestamp, _currentPosition!.latitude, _currentPosition!.longitude]);
+      // file.writeAsBytesSync(excel.save()!);
     } catch (e) {
       setState(() {
         // failed to get latitude and longitude
@@ -114,6 +124,32 @@ class _MapPageState extends State<MapPage> {
     }
   }
 
+  void _saveToExcel() async {
+    if (_locationUpdated) {
+      try {
+        final file = await _getExcelFile();
+        final excel = Excel.decodeBytes(file.readAsBytesSync());
+        Sheet sheetObject = excel['Sheet1'];
+
+        String timestamp = DateFormat('HH:mm').format(DateTime.now());
+        sheetObject.appendRow([timestamp, _currentPosition!.latitude, _currentPosition!.longitude]);
+        file.writeAsBytesSync(excel.save()!);
+
+        setState(() {
+          message = 'Location Saved';
+        });
+      } catch (e) {
+        setState(() {
+          message = 'Failed to save Location: $e';
+        });
+      }
+    } else {
+      setState(() {
+        message = 'No location tracked to save';
+      });
+    }
+  }
+
   // UI starts here
   @override
   Widget build(BuildContext context) {
@@ -122,7 +158,8 @@ class _MapPageState extends State<MapPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Expanded( // actual map
+            // map here
+            Expanded(
               flex: 2,
               child: Container(
                 decoration: BoxDecoration(
@@ -136,27 +173,21 @@ class _MapPageState extends State<MapPage> {
                   ],
                 ),
                 child: GoogleMap(
-                    initialCameraPosition: CameraPosition(
-                      target: _currentPosition!,
-                      zoom: 18.0,
-                    ),
-                    mapType: MapType.satellite,
-                    onMapCreated: (GoogleMapController controller) {
-                      _mapController = controller;
-                    },
-                    markers: Set.from(widget.markers)..addAll(_selfMarker != null ? [_selfMarker!] : []),
-                    // markers: Set.from(widget.markers)..add(_selfMarker!),
-                    // markers: {
-                    //   Marker(
-                    //     markerId: const MarkerId('currentLocation'),
-                    //     position: _currentPosition!,
-                    //   ),
-                    // },
-                    ),
+                  initialCameraPosition: CameraPosition(
+                    target: _currentPosition!,
+                    zoom: 18.0,
+                  ),
+                  mapType: MapType.satellite,
+                  onMapCreated: (GoogleMapController controller) {
+                    _mapController = controller;
+                  },
+                  markers: Set.from(widget.markers)..addAll(_selfMarker != null ? [_selfMarker!] : []),
+                ),
               ),
             ),
+            // Location Indicated Text
             Padding(
-              padding: const EdgeInsets.only(top: 20, bottom: 10),
+              padding: const EdgeInsets.only(top: 25, bottom: 10),
               child: Text(
                 message,
                 textAlign: TextAlign.center,
@@ -181,27 +212,49 @@ class _MapPageState extends State<MapPage> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(top: 10.0, bottom: 50.0),
+              padding: const EdgeInsets.only(bottom: 30.0),
               child: SizedBox(
-                height: 40,
+                height: 60,
                 child: _isLoading
                     ? const Center(
                         child: SizedBox(
                           child: CircularProgressIndicator(),
                         ),
                       )
-                    : ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: const Color.fromARGB(255, 34, 34, 34),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          minimumSize: const Size(150, 40),
-                        ),
-                        onPressed: _updateLocation,
-                        child: const Text(
-                          'Track',
-                          style: TextStyle(fontSize: 16),
-                        ),
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              backgroundColor: const Color.fromARGB(255, 34, 34, 34),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              minimumSize: const Size(150, 45),
+                            ),
+                            onPressed: _updateLocation,
+                            child: const Text(
+                              'Track',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                          const SizedBox(width: 20),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: const Color.fromARGB(255, 34, 34, 34),
+                              backgroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                side: const BorderSide(color: Color.fromARGB(255, 34, 34, 34), width: 2),
+                              ),
+                              minimumSize: const Size(80, 45),
+                            ),
+                            onPressed: _saveToExcel,
+                            child: const Text(
+                              'Save',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ],
                       ),
               ),
             ),
