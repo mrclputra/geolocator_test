@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 
 import 'package:flutter_excel/excel.dart';
@@ -27,7 +29,8 @@ class _HistoryPageState extends State<HistoryPage> {
     Sheet sheetObject = excel['Sheet1'];
 
     List<List<dynamic>> data = [];
-    for (var row in sheetObject.rows.reversed) { // times are read bottom up
+    for (var row in sheetObject.rows.reversed) {
+      // data is read bottom up
       data.add(row.map((cell) => cell?.value ?? '').toList());
     }
 
@@ -60,6 +63,47 @@ class _HistoryPageState extends State<HistoryPage> {
     }
   }
 
+  Future<void> _downloadExcelFile() async {
+    final file = await _getExcelFile();
+    if (await file.exists()) {
+      // show a confirmation dialog
+      bool? confirm = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Download Excel'),
+          content: const Text('Do you want to download the Excel file?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Download'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirm == true) {
+        // assuming permissions to write to storage
+        final downloadDirectory = Directory('/storage/emulated/0/Download'); // Adjust as necessary
+        if (await downloadDirectory.exists()) {
+          final newFilePath = '${downloadDirectory.path}/location_data.xlsx';
+          await file.copy(newFilePath); // copy file to download location
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('File downloaded to Downloads folder.')),
+          );
+        } else {
+          // handle case where download directory doesn't exist
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Download directory not found.')),
+          );
+        }
+      }
+    }
+  }
+
   // User Interface here
   @override
   Widget build(BuildContext context) {
@@ -72,12 +116,23 @@ class _HistoryPageState extends State<HistoryPage> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 20),
-            child: IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () {
-                // implement delete here
-                _clearLocationData();
-              },
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.download_rounded),
+                  onPressed: () {
+                    // call excel download here
+                    _downloadExcelFile();
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () {
+                    // call location delete here
+                    _clearLocationData();
+                  },
+                ),
+              ],
             ),
           )
         ],

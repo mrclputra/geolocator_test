@@ -38,7 +38,7 @@ class _MarkersPageState extends State<MarkersPage> {
         _longController.clear();
       });
     } else {
-      // Show error if coordinates are invalid
+      // invalid coordinate error
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter valid coordinates')),
       );

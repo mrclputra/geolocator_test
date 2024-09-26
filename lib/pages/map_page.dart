@@ -14,6 +14,7 @@ class MapPage extends StatefulWidget {
   final String? lat;
   final String? long;
   final List<Marker> markers;
+  final bool locationUpdated;
 
   const MapPage({
     super.key, // API key
@@ -21,6 +22,7 @@ class MapPage extends StatefulWidget {
     this.lat,
     this.long,
     required this.markers,
+    required this.locationUpdated
   });
 
   @override
@@ -36,7 +38,6 @@ class _MapPageState extends State<MapPage> {
   String message = 'No Location Detected';
   LatLng? _currentPosition = const LatLng(3.1575, 101.7116); // current position on map
   bool _isLoading = false; // track loading state
-  bool _locationUpdated = false; // track if location has been updated
   GoogleMapController? _mapController; // camera control
 
   final LocationService _locationService = LocationService();
@@ -94,7 +95,6 @@ class _MapPageState extends State<MapPage> {
           infoWindow: const InfoWindow(title: 'My Location'),
           icon: BitmapDescriptor.defaultMarker,
         );
-        _locationUpdated = true;
       });
 
       // move camera to new location
@@ -103,15 +103,6 @@ class _MapPageState extends State<MapPage> {
           CameraUpdate.newLatLng(_currentPosition!),
         );
       }
-
-      // // save location data to excel
-      // final file = await _getExcelFile();
-      // final excel = Excel.decodeBytes(file.readAsBytesSync());
-      // Sheet sheetObject = excel['Sheet1'];
-
-      // String timestamp = DateFormat('HH:mm').format(DateTime.now());
-      // sheetObject.appendRow([timestamp, _currentPosition!.latitude, _currentPosition!.longitude]);
-      // file.writeAsBytesSync(excel.save()!);
     } catch (e) {
       setState(() {
         // failed to get latitude and longitude
@@ -125,7 +116,7 @@ class _MapPageState extends State<MapPage> {
   }
 
   void _saveToExcel() async {
-    if (_locationUpdated) {
+    if (widget.locationUpdated) {
       try {
         final file = await _getExcelFile();
         final excel = Excel.decodeBytes(file.readAsBytesSync());

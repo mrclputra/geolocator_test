@@ -4,6 +4,10 @@ import 'package:geolocator_test/pages/map_page.dart';
 import 'package:geolocator_test/pages/markers_page.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'dart:convert';
+
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
@@ -18,21 +22,53 @@ class _MainPageState extends State<MainPage> {
   String? lat;
   String? long;
 
+  bool _locationUpdated = false;
+
   // shared map markers list
   final List<Marker> _markers = [];
 
-  // update location
-  void updateLocation(String latitude, String longitude) {
-    setState(() {
-      lat = latitude;
-      long = longitude;
-    });
+  // save markers to persistent file
+  Future<void> _saveMarkersToFile() async {
+    final directory = await getApplicationDocumentsDirectory();
+    final file = File('${directory.path}/markers.txt');
+
+    List<String> markerList = _markers.map((marker) {
+      return jsonEncode({
+        'id': marker.markerId.value,
+        'lat': marker.position.latitude,
+        'long': marker.position.longitude,
+      });
+    }).toList();
+
+    await file.writeAsString(markerList.join('\n'));
+  }
+
+  // load markers from persistent file
+  Future<void> _loadMarkersFromFile() async {
+    final directory = await getApplicationDocumentsDirectory();
+    final file = File('${directory.path}/markers.txt');
+
+    if (await file.exists()) {
+      List<String> markerList = await file.readAsLines();
+      setState(() {
+        _markers.clear();
+        _markers.addAll(markerList.map((markerString) {
+          Map<String, dynamic> markerData = jsonDecode(markerString);
+          return Marker(
+            markerId: MarkerId(markerData['id']),
+            position: LatLng(markerData['lat'], markerData['long']),
+            infoWindow: const InfoWindow(title: 'Custom Marker'),
+          );
+        }).toList());
+      });
+    }
   }
 
   // add marker
   void addMarker(Marker marker) {
     setState(() {
       _markers.add(marker);
+      _saveMarkersToFile();
     });
   }
 
@@ -40,6 +76,16 @@ class _MainPageState extends State<MainPage> {
   void deleteMarker(Marker marker) {
     setState(() {
       _markers.remove(marker);
+      _saveMarkersToFile();
+    });
+  }
+
+  // update location
+  void updateLocation(String latitude, String longitude) {
+    setState(() {
+      lat = latitude;
+      long = longitude;
+      _locationUpdated = true;
     });
   }
 
@@ -48,11 +94,13 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
+    _loadMarkersFromFile();
     _pages.add(MapPage(
       updateLocation: updateLocation,
       lat: lat,
       long: long,
       markers: _markers,
+      locationUpdated: _locationUpdated,
     ));
     _pages.add(const HistoryPage());
     _pages.add(MarkersPage(
@@ -83,6 +131,7 @@ class _MainPageState extends State<MainPage> {
           lat: lat,
           long: long,
           markers: List.from(_markers)..addAll(currentLocationMarker != null ? [currentLocationMarker] : []),
+          locationUpdated: _locationUpdated
           // markers: _markers,
         );
       }
