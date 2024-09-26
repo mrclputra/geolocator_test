@@ -1,5 +1,10 @@
 import 'package:geolocator/geolocator.dart';
 
+/**
+ * This class ensures device has location permission
+ * Function will return current location
+ */
+
 class LocationService {
   Future<Position> getLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();

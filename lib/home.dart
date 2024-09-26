@@ -8,21 +8,21 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'dart:convert';
 
-class MainPage extends StatefulWidget {
-  const MainPage({super.key});
+class PageManager extends StatefulWidget {
+  const PageManager({super.key});
 
   @override
-  State<MainPage> createState() => _MainPageState();
+  State<PageManager> createState() => _PageManagerState();
 }
 
-class _MainPageState extends State<MainPage> {
+class _PageManagerState extends State<PageManager> {
   // keep track of current page
   int _selectedIndex = 0;
 
   String? lat;
   String? long;
 
-  bool _locationUpdated = false;
+  bool isNotNew = false;
 
   // shared map markers list
   final List<Marker> _markers = [];
@@ -85,7 +85,16 @@ class _MainPageState extends State<MainPage> {
     setState(() {
       lat = latitude;
       long = longitude;
-      _locationUpdated = true;
+      isNotNew = true;
+      
+      // rebuild MapPage immediately with new location
+      _pages[0] = MapPage(
+        updateLocation: updateLocation,
+        lat: lat,
+        long: long,
+        markers: _markers,
+        isNotNew: isNotNew,
+      );
     });
   }
 
@@ -100,7 +109,7 @@ class _MainPageState extends State<MainPage> {
       lat: lat,
       long: long,
       markers: _markers,
-      locationUpdated: _locationUpdated,
+      isNotNew: isNotNew,
     ));
     _pages.add(const HistoryPage());
     _pages.add(MarkersPage(
@@ -131,7 +140,7 @@ class _MainPageState extends State<MainPage> {
           lat: lat,
           long: long,
           markers: List.from(_markers)..addAll(currentLocationMarker != null ? [currentLocationMarker] : []),
-          locationUpdated: _locationUpdated
+          isNotNew: isNotNew
           // markers: _markers,
         );
       }

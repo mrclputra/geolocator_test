@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import '../location_service.dart';
+import '../other/location_service.dart';
 
 import 'package:flutter_excel/excel.dart';
 import 'package:path_provider/path_provider.dart';
@@ -14,15 +14,15 @@ class MapPage extends StatefulWidget {
   final String? lat;
   final String? long;
   final List<Marker> markers;
-  final bool locationUpdated;
+  final bool isNotNew;
 
   const MapPage({
-    super.key, // API key
+    super.key,
     required this.updateLocation, // function to get lat and long
     this.lat,
     this.long,
     required this.markers,
-    required this.locationUpdated
+    required this.isNotNew
   });
 
   @override
@@ -116,7 +116,7 @@ class _MapPageState extends State<MapPage> {
   }
 
   void _saveToExcel() async {
-    if (widget.locationUpdated) {
+    if (widget.isNotNew) {
       try {
         final file = await _getExcelFile();
         final excel = Excel.decodeBytes(file.readAsBytesSync());

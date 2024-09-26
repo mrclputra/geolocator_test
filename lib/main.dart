@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:geolocator_test/main_page.dart';
+import 'package:geolocator_test/home.dart';
 
 void main() {
   runApp(const MainApp());
@@ -18,7 +18,7 @@ class MainApp extends StatelessWidget {
             primary: Colors.blueGrey,
             secondary: Colors.teal,
           )),
-      home: const MainPage(),
+      home: const PageManager(),
     );
   }
 }
