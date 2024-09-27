@@ -18,7 +18,7 @@ class _MapPageState extends State<MapPage> {
   final LocationService _locationService = LocationService();
   GoogleMapController? _mapController;
 
-  bool _isLoading = false; // initialize page by loading
+  bool _isLoading = false;
 
   // loading indicator
   Widget _buildLoadingIndicator() {
@@ -50,10 +50,22 @@ class _MapPageState extends State<MapPage> {
   }
 
   // placeholder for the save function
-  void _saveLocation() {
-    // Logic to save the location (e.g., to a file or database)
+  // save location to excel
+  void _saveLocation() async {
+    if (!_locationService.hasLocationUpdated) {
+      // check flag from LocationService
+      setState(() {
+        _locationService.message = 'No Location Tracked to Save';
+      });
+      return;
+    }
+
+    await _locationService.saveLocationData();
     print("Saving location: ${_locationService.currentPosition}");
-    // Show confirmation or feedback to the user here
+
+    setState(() {
+      _locationService.message = 'Location Saved';
+    });
   }
 
   // this runs on page initialization
