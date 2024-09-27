@@ -29,11 +29,11 @@ class _PageManagerState extends State<PageManager> {
     super.initState();
     // load markers from file
     // add map page
-    _pages.add(MapPage());
+    _pages.add(const MapPage());
     // add history page
-    _pages.add(HistoryPage());
+    _pages.add(const HistoryPage());
     // add markers page
-    _pages.add(MarkersPage());
+    _pages.add(const MarkersPage());
   }
 
   // UI

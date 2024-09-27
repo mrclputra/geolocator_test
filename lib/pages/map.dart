@@ -1,10 +1,9 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/material.dart';
 
-import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../other/location_service.dart';
-
-import 'package:shared_preferences/shared_preferences.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({
@@ -19,7 +18,7 @@ class _MapPageState extends State<MapPage> {
   final LocationService _locationService = LocationService();
   GoogleMapController? _mapController;
 
-  bool _isLoading = false;
+  bool _isLoading = false; // initialize page by loading
 
   // loading indicator
   Widget _buildLoadingIndicator() {
@@ -28,7 +27,7 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  // refresh location and UI
+  // refresh location and UI, called on track button press
   void _refreshLocation() async {
     setState(() {
       // show loading indicator
@@ -43,7 +42,7 @@ class _MapPageState extends State<MapPage> {
         CameraUpdate.newLatLng(_locationService.currentPosition!),
       );
     }
-    
+
     setState(() {
       // hide loading indicator
       _isLoading = false;
@@ -53,10 +52,20 @@ class _MapPageState extends State<MapPage> {
   // placeholder for the save function
   void _saveLocation() {
     // Logic to save the location (e.g., to a file or database)
-    // This could include functionality to save the current position
-    // to local storage or send it to a server.
     print("Saving location: ${_locationService.currentPosition}");
     // Show confirmation or feedback to the user here
+  }
+
+  // this runs on page initialization
+  @override
+  void initState() {
+    super.initState();
+    // initialize camera position if available
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _mapController?.animateCamera(
+        CameraUpdate.newLatLng(_locationService.currentPosition),
+      );
+    });
   }
 
   // UI
@@ -72,8 +81,7 @@ class _MapPageState extends State<MapPage> {
               flex: 2,
               child: GoogleMap(
                 initialCameraPosition: CameraPosition(
-                  target: _locationService.currentPosition ??
-                      const LatLng(3.1575, 101.7116), // default location
+                  target: _locationService.currentPosition,
                   zoom: 18.0,
                 ),
                 mapType: MapType.satellite,
@@ -134,7 +142,7 @@ class _MapPageState extends State<MapPage> {
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                               minimumSize: const Size(150, 45),
                             ),
-                            onPressed: _refreshLocation, // Update location function
+                            onPressed: _refreshLocation, // update location function
                             child: const Text(
                               'Track',
                               style: TextStyle(fontSize: 16),
