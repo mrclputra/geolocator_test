@@ -11,10 +11,6 @@ class PageManager extends StatefulWidget {
 }
 
 class _PageManagerState extends State<PageManager> {
-  // latitude and longitude cache
-  String? lat;
-  String? long;
-
   // keep track of current page
   int _currentPageIndex = 0;
   final List<Widget> _pages = [];
@@ -23,7 +19,6 @@ class _PageManagerState extends State<PageManager> {
   void _navigatePage(int index) {
     setState(() {
       _currentPageIndex = index;
-
       // no need to recreate mappage, it should be handled through mappage class init function
     });
   }
