@@ -19,6 +19,7 @@ class LocationService {
 
   String message = 'No Location Detected';
   bool hasLocationUpdated = false; // flag to track location update status
+  List<Marker> markers = [];
 
   get currentPosition => _currentPosition ?? _defaultPosition;
 
@@ -87,5 +88,20 @@ class LocationService {
     final directory = await getApplicationDocumentsDirectory();
     final path = '${directory.path}/location_data.xlsx';
     return File(path);
+  }
+
+  // add a map marker
+  void addMarker(LatLng position) {
+    markers.add(
+      Marker(
+        markerId: MarkerId('${markers.length + 1}'),
+        position: position,
+      ),
+    );
+  }
+
+  // delete map marker by index
+  void deleteMarker(Marker marker) {
+    markers.remove(marker);
   }
 }
