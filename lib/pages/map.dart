@@ -72,6 +72,7 @@ class _MapPageState extends State<MapPage> {
   @override
   void initState() {
     super.initState();
+
     // initialize camera position if available
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _mapController?.animateCamera(
@@ -100,16 +101,6 @@ class _MapPageState extends State<MapPage> {
                 onMapCreated: (GoogleMapController controller) {
                   _mapController = controller;
                 },
-                // markers: _locationService.currentPosition != null
-                //     ? {
-                //         Marker(
-                //           markerId: const MarkerId('self'),
-                //           position: _locationService.currentPosition!,
-                //           infoWindow: const InfoWindow(title: 'My Position'),
-                //           icon: BitmapDescriptor.defaultMarker,
-                //         ),
-                //       }
-                //     : {},
                 markers: {
                   // add the current position marker if available
                   if (_locationService.currentPosition != null)
@@ -117,7 +108,7 @@ class _MapPageState extends State<MapPage> {
                       markerId: const MarkerId('current_position'),
                       position: _locationService.currentPosition!,
                       infoWindow: const InfoWindow(title: 'My Position'),
-                      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue), // Custom color
+                      icon: BitmapDescriptor.defaultMarker, // set default
                     ),
                   // add custom markers from LocationService
                   ..._locationService.markers,

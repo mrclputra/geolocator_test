@@ -59,7 +59,7 @@ class _MarkersPageState extends State<MarkersPage> {
                 final long = double.tryParse(_longController.text);
                 if (lat != null && long != null) {
                   setState(() {
-                    _locationService.addMarker(LatLng(lat, long)); // Add marker
+                    _locationService.addMarker(LatLng(lat, long)); // add marker
                   });
                   _latController.clear();
                   _longController.clear();
