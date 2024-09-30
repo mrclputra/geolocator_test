@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator_test/pages/dashboard.dart';
 import 'package:geolocator_test/pages/history.dart';
 import 'package:geolocator_test/pages/map.dart';
 import 'package:geolocator_test/pages/markers.dart';
@@ -12,7 +13,7 @@ class PageManager extends StatefulWidget {
 
 class _PageManagerState extends State<PageManager> {
   // keep track of current page
-  int _currentPageIndex = 0;
+  int _currentPageIndex = 1;
   final List<Widget> _pages = [];
 
   // navigate pages
@@ -27,7 +28,8 @@ class _PageManagerState extends State<PageManager> {
   @override
   void initState() {
     super.initState();
-    // load markers from file
+    // add dashboard page
+    _pages.add(const DashboardPage());
     // add map page
     _pages.add(const MapPage());
     // add history page
@@ -42,19 +44,26 @@ class _PageManagerState extends State<PageManager> {
     return Scaffold(
       body: _pages[_currentPageIndex],
       bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.white,
         currentIndex: _currentPageIndex,
         onTap: _navigatePage,
+        unselectedItemColor: const Color.fromARGB(255, 84, 84, 84),
+        selectedItemColor: const Color.fromARGB(255, 29, 29, 29),
         items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard_rounded),
+            label: 'Dashboard',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.map),
             label: 'Map',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.history),
+            icon: Icon(Icons.history_edu),
             label: 'History',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.gps_fixed),
+            icon: Icon(Icons.location_on),
             label: 'Markers',
           ),
         ],

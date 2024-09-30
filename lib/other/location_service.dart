@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -21,7 +23,9 @@ class LocationService {
 
   // constructor
   LocationService._internal() {
+    // on program start
     _loadCustomMarkerIcon();
+    _loadMarkersFromFile();
   }
 
   final LatLng _defaultPosition = const LatLng(3.1575, 101.7116); // custom default user position
@@ -35,6 +39,7 @@ class LocationService {
   bool hasLocationUpdated = false; // flag to track location update status
   List<Marker> markers = [];
 
+  // convert img asset to raw data
   Future<Uint8List> getBytesFromAsset(String path, int width) async {
     ByteData data = await rootBundle.load(path); // load image from assets
     ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(), targetWidth: width); // resize image
@@ -42,8 +47,9 @@ class LocationService {
     return (await fi.image.toByteData(format: ui.ImageByteFormat.png))!.buffer.asUint8List();
   }
 
+  // load custom marker icon
   Future<void> _loadCustomMarkerIcon() async {
-    final Uint8List markerIcon = await getBytesFromAsset('lib/assets/waypoint.png', 56); // set custom width here
+    final Uint8List markerIcon = await getBytesFromAsset('lib/assets/waypoint.png', 56); // set custom waypoint icon size here
     // ignore: deprecated_member_use
     _customWaypointMarker = BitmapDescriptor.fromBytes(markerIcon);
   }
@@ -110,10 +116,50 @@ class LocationService {
     await file.writeAsBytes(excel.save()!);
   }
 
+  // get directory of excel file
   Future<File> _getExcelFile() async {
     final directory = await getApplicationDocumentsDirectory();
     final path = '${directory.path}/location_data.xlsx';
     return File(path);
+  }
+
+  // save markers to persistent file
+  Future<void> _saveMarkersToFile() async {
+    final directory = await getApplicationDocumentsDirectory();
+    final file = File('${directory.path}/markers.txt'); // probably encrypt this in the future
+
+    List<String> markerList = markers.map((marker) {
+      return jsonEncode({
+        'id': marker.markerId.value,
+        'lat': marker.position.latitude,
+        'long': marker.position.longitude,
+      });
+    }).toList();
+
+    await file.writeAsString(markerList.join('\n'));
+  }
+
+  // load markers form persistent file
+  Future<void> _loadMarkersFromFile() async {
+    final directory = await getApplicationDocumentsDirectory();
+    final file = File('${directory.path}/markers.txt');
+
+    if (await file.exists()) {
+      List<String> markerList = await file.readAsLines();
+      markers.clear(); // Clear existing markers
+
+      // Load markers from file
+      for (String markerString in markerList) {
+        Map<String, dynamic> markerData = jsonDecode(markerString);
+        markers.add(
+          Marker(
+            markerId: MarkerId(markerData['id']),
+            position: LatLng(markerData['lat'], markerData['long']),
+            infoWindow: const InfoWindow(title: 'Custom Marker'),
+          ),
+        );
+      }
+    }
   }
 
   // add a map marker
@@ -127,6 +173,8 @@ class LocationService {
         icon: icon,
       ),
     );
+
+    _saveMarkersToFile();
   }
 
   // delete map marker
