@@ -23,7 +23,7 @@ class LocationService {
 
   // constructor
   LocationService._internal() {
-    // on program start
+    // on program start, place init functions here
     _loadCustomMarkerIcon();
     _loadMarkersFromFile();
   }

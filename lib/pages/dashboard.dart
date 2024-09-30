@@ -133,38 +133,6 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
 
               const SizedBox(height: 24),
-
-              // Manhour Chart
-              // const Text('Manhour Chart per Month', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              // SizedBox(
-              //   height: 200,
-              //   child: BarChart(
-              //     BarChartData(
-              //       barGroups: barChartData,
-              //       titlesData: FlTitlesData(
-              //         bottomTitles: AxisTitles(
-              //           sideTitles: SideTitles(showTitles: true, reservedSize: 38, getTitlesWidget: (value, meta) {
-              //             return Text(
-              //               value.toInt().toString(), // display month number
-              //               style: const TextStyle(fontSize: 10),
-              //             );
-              //           }),
-              //         ),
-              //         leftTitles: const AxisTitles(
-              //           sideTitles: SideTitles(showTitles: true),
-              //         ),
-              //         topTitles: const AxisTitles(
-              //           sideTitles: SideTitles(showTitles: false),
-              //         ),
-              //         rightTitles: const AxisTitles(
-              //           sideTitles: SideTitles(showTitles: false),
-              //         ),
-              //       ),
-              //       borderData: FlBorderData(show: false),
-              //       gridData: FlGridData(show: false),
-              //     ),
-              //   ),
-              // ),
             ],
           ),
         ),
