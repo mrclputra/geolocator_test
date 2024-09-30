@@ -64,7 +64,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   child: GoogleMap(
                     mapType: MapType.hybrid,
                     initialCameraPosition: CameraPosition(
-                      target: _mapCenter, // change center point here as needed (multiple projects?)
+                      target: _locationService.currentPosition, // change center point here as needed (multiple projects?)
                       zoom: 10,
                     ),
                     markers: _locationService.markers.toSet(),

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -25,19 +26,40 @@ class LocationService {
   LocationService._internal() {
     // on program start, place init functions here
     _loadCustomMarkerIcon();
-    _loadMarkersFromFile();
+    // loadMarkersFromFile();
   }
 
   final LatLng _defaultPosition = const LatLng(3.1575, 101.7116); // custom default user position
   get currentPosition => _currentPosition ?? _defaultPosition;
 
   LatLng? _currentPosition;
+  String message = 'No Location Detected';
+  bool hasLocationUpdated = false; // flag to track location update status
+
   BitmapDescriptor? _customWaypointMarker;
   BitmapDescriptor? get customWaypointMarker => _customWaypointMarker;
 
-  String message = 'No Location Detected';
-  bool hasLocationUpdated = false; // flag to track location update status
+  Map<PolylineId, Polyline> polyLines = {};
   List<Marker> markers = [];
+
+  // add polyline
+  void _updatePolylines() {
+    const PolylineId polylineId = PolylineId('polyline_id');
+    
+    // create a list of points from  markers' positions
+    List<LatLng> points = markers.map((marker) => marker.position).toList();
+
+    // create a polyline said points
+    final Polyline polyline = Polyline(
+      polylineId: polylineId,
+      color: Colors.blue, // set polyline color here
+      points: points,
+      width: 4,
+    );
+
+    // update the polyLines map
+    polyLines[polylineId] = polyline;
+  }
 
   // convert img asset to raw data
   Future<Uint8List> getBytesFromAsset(String path, int width) async {
@@ -140,45 +162,56 @@ class LocationService {
   }
 
   // load markers form persistent file
-  Future<void> _loadMarkersFromFile() async {
+  Future<void> loadMarkersFromFile() async {
     final directory = await getApplicationDocumentsDirectory();
     final file = File('${directory.path}/markers.txt');
 
     if (await file.exists()) {
       List<String> markerList = await file.readAsLines();
-      markers.clear(); // Clear existing markers
+      markers.clear(); // precautionary
 
       // Load markers from file
       for (String markerString in markerList) {
         Map<String, dynamic> markerData = jsonDecode(markerString);
-        markers.add(
-          Marker(
-            markerId: MarkerId(markerData['id']),
-            position: LatLng(markerData['lat'], markerData['long']),
-            infoWindow: const InfoWindow(title: 'Custom Marker'),
-          ),
-        );
+        String markerName = markerData['id'];
+        LatLng position = LatLng(markerData['lat'], markerData['long']);
+
+        addMarker(position, markerName);
       }
     }
   }
 
   // add a map marker
-  void addMarker(LatLng position) async {
-    final icon = _customWaypointMarker ?? BitmapDescriptor.defaultMarker;
+  void addMarker(LatLng position, String name) async {
+    // check for duplicate marker names and modify the name if needed
+    String newName = name;
+    int count = 1;
+    while (markers.any((marker) => marker.markerId.value == newName)) {
+      newName = '$name' '_' '$count';
+      count++;
+    }
+
+    final icon = _customWaypointMarker!;
     markers.add(
       Marker(
-        markerId: MarkerId('${markers.length + 1}'),
+        markerId: MarkerId(newName),
         position: position,
-        infoWindow: InfoWindow(title: 'Marker ${markers.length + 1}'),
+        infoWindow: InfoWindow(
+          title: newName,
+          snippet: 'Lat: ${position.latitude}, Long: ${position.longitude}',
+        ),
         icon: icon,
       ),
     );
 
-    _saveMarkersToFile();
+    _saveMarkersToFile(); // save full list
+    _updatePolylines();
   }
 
   // delete map marker
   void deleteMarker(Marker marker) {
     markers.remove(marker);
+    _saveMarkersToFile();
+    _updatePolylines();
   }
 }

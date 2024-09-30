@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator_test/other/location_service.dart';
 import 'package:geolocator_test/pages/dashboard.dart';
 import 'package:geolocator_test/pages/history.dart';
 import 'package:geolocator_test/pages/map.dart';
@@ -24,10 +25,16 @@ class _PageManagerState extends State<PageManager> {
     });
   }
 
+  final LocationService _locationService = LocationService();
+
   // this runs on initialization
   @override
   void initState() {
     super.initState();
+    _locationService.loadMarkersFromFile().then((_) {
+      setState(() {}); // Refresh UI after loading markers
+    });
+
     // add dashboard page
     _pages.add(const DashboardPage());
     // add map page
@@ -64,7 +71,7 @@ class _PageManagerState extends State<PageManager> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.location_on),
-            label: 'Markers',
+            label: 'Trail',
           ),
         ],
       ),

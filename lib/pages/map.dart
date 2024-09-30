@@ -113,6 +113,7 @@ class _MapPageState extends State<MapPage> {
                   // add custom markers from LocationService
                   ..._locationService.markers,
                 },
+                polylines: Set<Polyline>.of(_locationService.polyLines.values),
               ),
             ),
             // Indicator text

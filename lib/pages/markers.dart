@@ -11,8 +11,21 @@ class MarkersPage extends StatefulWidget {
 
 class _MarkersPageState extends State<MarkersPage> {
   final LocationService _locationService = LocationService();
-  final TextEditingController _latController = TextEditingController();
-  final TextEditingController _longController = TextEditingController();
+
+  final TextEditingController _nameController = TextEditingController(); // waypoint name
+  final TextEditingController _latController = TextEditingController(); // waypoint latitude
+  final TextEditingController _longController = TextEditingController(); // waypoint longitude
+
+  // reorder markers in list
+  void _onReorder(int oldIndex, int newIndex) {
+    setState(() {
+      if (newIndex > oldIndex) {
+        newIndex -= 1;
+      }
+      final marker = _locationService.markers.removeAt(oldIndex);
+      _locationService.markers.insert(newIndex, marker);
+    });
+  }
 
   // UI
   @override
@@ -22,51 +35,85 @@ class _MarkersPageState extends State<MarkersPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            const SizedBox(height: 20,),
             Expanded(
-              child: ListView.builder(
-                  itemCount: _locationService.markers.length,
-                  itemBuilder: (context, index) {
-                    final marker = _locationService.markers[index];
-                    return ListTile(
-                      title: Text('Marker ${index + 1}'),
-                      subtitle: Text('Lat: ${marker.position.latitude}, Long: ${marker.position.longitude}'),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () {
-                          // call delete markers function here
-                          setState(() {
-                            _locationService.deleteMarker(marker);
-                          });
-                        },
-                      ),
-                    );
+              child: ReorderableListView.builder(
+                itemCount: _locationService.markers.length,
+                onReorder: _onReorder,
+                itemBuilder: (context, index) {
+                  final marker = _locationService.markers[index];
+                  return ListTile(
+                    key: ValueKey(marker.markerId), // unique key for each marker
+                    title: Text(marker.markerId.value),
+                    subtitle: Text('Lat: ${marker.position.latitude}, Long: ${marker.position.longitude}'),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red, size: 23,),
+                          onPressed: () {
+                            setState(() {
+                              _locationService.deleteMarker(marker);
+                            });
+                          },
+                        ),
+                        const Icon(Icons.drag_handle, size: 26,), // drag icon to reorder
+                      ],
+                    ),
+                  );
                 },
               ),
             ),
             TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(
+                labelText: 'Waypoint Name',
+                isDense: false,
+                contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 12.0),
+              ),
+            ),
+            TextField(
               controller: _latController,
-              decoration: const InputDecoration(labelText: 'Latitude'),
+              decoration: const InputDecoration(
+                labelText: 'Latitude',
+                isDense: false,
+                contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 12.0),
+              ),
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
             ),
             TextField(
               controller: _longController,
-              decoration: const InputDecoration(labelText: 'Longitude'),
+              decoration: const InputDecoration(
+                labelText: 'Longitude',
+                isDense: false,
+                contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 12.0),
+              ),
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
             ),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: const Color.fromARGB(255, 34, 34, 34),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                minimumSize: const Size(140, 40),
+              ),
               onPressed: () {
+                final name = _nameController.text;
                 final lat = double.tryParse(_latController.text);
                 final long = double.tryParse(_longController.text);
-                if (lat != null && long != null) {
+
+                if (lat != null && long != null && name.isNotEmpty) {
                   setState(() {
-                    _locationService.addMarker(LatLng(lat, long)); // add marker
+                    _locationService.addMarker(LatLng(lat, long), name); // add marker
                   });
+                  _nameController.clear();
                   _latController.clear();
                   _longController.clear();
                 }
               },
               child: const Text('Add Marker'),
             ),
+            const SizedBox(height: 10,),
           ],
         ),
       ),
