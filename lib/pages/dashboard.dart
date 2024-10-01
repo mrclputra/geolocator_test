@@ -13,7 +13,7 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   final LocationService _locationService = LocationService();
-  final LatLng _mapCenter = const LatLng(3.1575, 101.7116); // custom coordinates
+  // final LatLng _mapCenter = const LatLng(3.1575, 101.7116); // custom coordinates
   final List<BarChartGroupData> barChartData = [];
   final List<PieChartSectionData> pieChartData = [];
 
@@ -42,13 +42,25 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Padding(
+          padding: EdgeInsets.only(left: 10),
+          child: Text(
+            'Placeholder Dashboard',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 42),
+              // const SizedBox(height: 42),
 
               // Map Section
               Container(
@@ -62,12 +74,13 @@ class _DashboardPageState extends State<DashboardPage> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: GoogleMap(
-                    mapType: MapType.hybrid,
                     initialCameraPosition: CameraPosition(
                       target: _locationService.currentPosition, // change center point here as needed (multiple projects?)
                       zoom: 10,
                     ),
+                    mapType: MapType.hybrid,
                     markers: _locationService.markers.toSet(),
+                    polylines: Set<Polyline>.of(_locationService.polyLines.values),
                   ),
                 ),
               ),
@@ -106,10 +119,10 @@ class _DashboardPageState extends State<DashboardPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Pie Chart
+                  // pie Chart
                   SizedBox(
                     height: 180,
-                    width: 200, // Set a fixed width for the pie chart
+                    width: 200, // set a fixed width for the pie chart
                     child: PieChart(
                       PieChartData(
                         sections: pieChartData,
@@ -118,7 +131,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                   ),
 
-                  // Labels Column
+                  // labels Column
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,

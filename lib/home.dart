@@ -21,7 +21,6 @@ class _PageManagerState extends State<PageManager> {
   void _navigatePage(int index) {
     setState(() {
       _currentPageIndex = index;
-      // no need to recreate mappage, it should be handled through mappage class init function
     });
   }
 
@@ -31,9 +30,6 @@ class _PageManagerState extends State<PageManager> {
   @override
   void initState() {
     super.initState();
-    _locationService.loadMarkersFromFile().then((_) {
-      setState(() {}); // Refresh UI after loading markers
-    });
 
     // add dashboard page
     _pages.add(const DashboardPage());
@@ -49,7 +45,21 @@ class _PageManagerState extends State<PageManager> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_currentPageIndex],
+      body: FutureBuilder(
+        future: _locationService.initialize(), // ensure markers are loaded before showing the content
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            // show loading indicator in the page body while markers load
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else {
+            // display the current page when loading is done
+            return _pages[_currentPageIndex];
+          }
+        },
+      ),
+      // bottom navigation bar stays visible even during loading
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.white,
         currentIndex: _currentPageIndex,
@@ -58,7 +68,7 @@ class _PageManagerState extends State<PageManager> {
         selectedItemColor: const Color.fromARGB(255, 29, 29, 29),
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_rounded),
+            icon: Icon(Icons.space_dashboard_rounded),
             label: 'Dashboard',
           ),
           BottomNavigationBarItem(
@@ -71,7 +81,7 @@ class _PageManagerState extends State<PageManager> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.location_on),
-            label: 'Trail',
+            label: 'Waypoints',
           ),
         ],
       ),

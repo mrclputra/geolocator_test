@@ -14,23 +14,25 @@ class HistoryPage extends StatefulWidget {
 
 class _HistoryPageState extends State<HistoryPage> {
   List<List<dynamic>> _locationData = []; // 2d data list
+  File? _excelFile;
 
   @override
   void initState() {
     super.initState();
+    _initializeExcelFile();
+  }
+
+  // initialize excel file and load data
+  Future<void> _initializeExcelFile() async {
+    final directory = await getApplicationDocumentsDirectory();
+    final path = '${directory.path}/location_data.xlsx';
+    _excelFile = File(path);
     _loadExcelFile();
   }
 
-  Future<File> _getExcelFile() async {
-    final directory = await getApplicationDocumentsDirectory();
-    final path = '${directory.path}/location_data.xlsx';
-    return File(path);
-  }
-
   Future<void> _loadExcelFile() async {
-    final file = await _getExcelFile();
-    if (await file.exists()) {
-      final excel = Excel.decodeBytes(file.readAsBytesSync());
+    if (_excelFile != null && await _excelFile!.exists()) {
+      final excel = Excel.decodeBytes(_excelFile!.readAsBytesSync());
       Sheet sheetObject = excel['Sheet1'];
 
       List<List<dynamic>> data = [];
@@ -44,22 +46,20 @@ class _HistoryPageState extends State<HistoryPage> {
     }
   }
 
+  // clear excel file and data
   Future<void> _clearExcelFile() async {
     setState(() {
       _locationData.clear();
     });
 
-    final file = await _getExcelFile();
-    if (await file.exists()) {
+    if (_excelFile != null && await _excelFile!.exists()) {
       var excel = Excel.createExcel();
-      await file.writeAsBytes(excel.save()!);
+      await _excelFile!.writeAsBytes(excel.save()!);
     }
   }
 
   Future<void> _downloadExcelFile() async {
-    final file = await _getExcelFile();
-
-    if (!await file.exists()) {
+    if (_excelFile == null || !await _excelFile!.exists()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('File does not exist.')),
       );
@@ -101,9 +101,9 @@ class _HistoryPageState extends State<HistoryPage> {
         }
 
         try {
-          await file.copy(newFilePath);
+          await _excelFile!.copy(newFilePath);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('File downloaded to Downloads folder.')),
+            const SnackBar(content: Text("File downloaded to '/Downloads' folder.")),
           );
         } catch (e) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -124,7 +124,13 @@ class _HistoryPageState extends State<HistoryPage> {
       appBar: AppBar(
         title: const Padding(
           padding: EdgeInsets.only(left: 10),
-          child: Text('Report History'),
+          child: Text(
+            'Report History',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
         actions: [
           Padding(
@@ -132,13 +138,13 @@ class _HistoryPageState extends State<HistoryPage> {
             child: Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.download_rounded),
+                  icon: const Icon(Icons.download),
                   onPressed: () {
                     _downloadExcelFile();
                   },
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete),
+                  icon: const Icon(Icons.delete_forever),
                   onPressed: () {
                     _clearExcelFile();
                   },

@@ -26,7 +26,12 @@ class LocationService {
   LocationService._internal() {
     // on program start, place init functions here
     _loadCustomMarkerIcon();
-    // loadMarkersFromFile();
+  }
+
+  // initialize function to be called after creating the instance
+  Future<void> initialize() async {
+    await loadMarkersFromFile();
+    // do other async tasks here like updating the location
   }
 
   final LatLng _defaultPosition = const LatLng(3.1575, 101.7116); // custom default user position
@@ -43,16 +48,16 @@ class LocationService {
   List<Marker> markers = [];
 
   // add polyline
-  void _updatePolylines() {
+  void updatePolylines() {
     const PolylineId polylineId = PolylineId('polyline_id');
-    
+
     // create a list of points from  markers' positions
     List<LatLng> points = markers.map((marker) => marker.position).toList();
 
     // create a polyline said points
     final Polyline polyline = Polyline(
       polylineId: polylineId,
-      color: Colors.blue, // set polyline color here
+      color: Colors.red, // set polyline color here
       points: points,
       width: 4,
     );
@@ -71,7 +76,7 @@ class LocationService {
 
   // load custom marker icon
   Future<void> _loadCustomMarkerIcon() async {
-    final Uint8List markerIcon = await getBytesFromAsset('lib/assets/waypoint.png', 56); // set custom waypoint icon size here
+    final Uint8List markerIcon = await getBytesFromAsset('lib/assets/waypoint2.png', 56); // set custom waypoint icon size here
     // ignore: deprecated_member_use
     _customWaypointMarker = BitmapDescriptor.fromBytes(markerIcon);
   }
@@ -205,13 +210,13 @@ class LocationService {
     );
 
     _saveMarkersToFile(); // save full list
-    _updatePolylines();
+    updatePolylines();
   }
 
   // delete map marker
   void deleteMarker(Marker marker) {
     markers.remove(marker);
     _saveMarkersToFile();
-    _updatePolylines();
+    updatePolylines();
   }
 }

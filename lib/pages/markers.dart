@@ -24,6 +24,9 @@ class _MarkersPageState extends State<MarkersPage> {
       }
       final marker = _locationService.markers.removeAt(oldIndex);
       _locationService.markers.insert(newIndex, marker);
+
+      // update map
+      _locationService.updatePolylines();
     });
   }
 
@@ -31,11 +34,54 @@ class _MarkersPageState extends State<MarkersPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Padding(
+          padding: EdgeInsets.only(left: 10),
+          child: Text(
+            'Waypoints',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 20),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.library_add_rounded),
+                  onPressed: () {
+                    // call waypoint excel import
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.download_rounded),
+                  onPressed: () {
+                    // implement download markers excel here
+                    // _downloadExcelFile();
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () {
+                    // implement confirmation screen
+                    // implement clear screen here
+                  },
+                )
+              ],
+            ),
+          )
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            const SizedBox(height: 20,),
+            const SizedBox(
+              height: 20,
+            ),
             Expanded(
               child: ReorderableListView.builder(
                 itemCount: _locationService.markers.length,
@@ -50,14 +96,21 @@ class _MarkersPageState extends State<MarkersPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red, size: 23,),
+                          icon: const Icon(
+                            Icons.delete,
+                            color: Colors.red,
+                            size: 23,
+                          ),
                           onPressed: () {
                             setState(() {
                               _locationService.deleteMarker(marker);
                             });
                           },
                         ),
-                        const Icon(Icons.drag_handle, size: 26,), // drag icon to reorder
+                        const Icon(
+                          Icons.drag_handle,
+                          size: 26,
+                        ), // drag icon to reorder
                       ],
                     ),
                   );
@@ -106,14 +159,18 @@ class _MarkersPageState extends State<MarkersPage> {
                   setState(() {
                     _locationService.addMarker(LatLng(lat, long), name); // add marker
                   });
-                  _nameController.clear();
+                  // _nameController.clear();
                   _latController.clear();
                   _longController.clear();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all Fields.')));
                 }
               },
               child: const Text('Add Marker'),
             ),
-            const SizedBox(height: 10,),
+            const SizedBox(
+              height: 10,
+            ),
           ],
         ),
       ),
