@@ -18,7 +18,7 @@ class _SplashPageState extends State<SplashPage> {
     // navigate to map after 5 seconds
     Timer(const Duration(seconds: 3), () {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => PageManager()),
+        MaterialPageRoute(builder: (_) => const PageManager()),
       );
     });
   }
