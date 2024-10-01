@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:geolocator_test/home.dart';
+// import 'package:geolocator_test/home.dart';
+import 'package:geolocator_test/pages/splash_screen.dart';
 
 void main() {
   runApp(const MainApp());
@@ -18,7 +19,7 @@ class MainApp extends StatelessWidget {
             primary: Colors.blueGrey,
             secondary: Colors.teal,
           )),
-      home: const PageManager(),
+      home: const SplashPage(),
     );
   }
 }

@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -57,9 +56,9 @@ class LocationService {
     // create a polyline said points
     final Polyline polyline = Polyline(
       polylineId: polylineId,
-      color: Colors.red, // set polyline color here
+      color: const ui.Color.fromARGB(255, 209, 39, 26), // set polyline color here
       points: points,
-      width: 4,
+      width: 6,
     );
 
     // update the polyLines map
@@ -76,7 +75,7 @@ class LocationService {
 
   // load custom marker icon
   Future<void> _loadCustomMarkerIcon() async {
-    final Uint8List markerIcon = await getBytesFromAsset('lib/assets/waypoint2.png', 56); // set custom waypoint icon size here
+    final Uint8List markerIcon = await getBytesFromAsset('lib/assets/waypoint.png', 54); // set custom waypoint icon size here
     // ignore: deprecated_member_use
     _customWaypointMarker = BitmapDescriptor.fromBytes(markerIcon);
   }
@@ -190,7 +189,7 @@ class LocationService {
   void addMarker(LatLng position, String name) async {
     // check for duplicate marker names and modify the name if needed
     String newName = name;
-    int count = 1;
+    int count = 1; // define filename postfix
     while (markers.any((marker) => marker.markerId.value == newName)) {
       newName = '$name' '_' '$count';
       count++;
@@ -206,6 +205,7 @@ class LocationService {
           snippet: 'Lat: ${position.latitude}, Long: ${position.longitude}',
         ),
         icon: icon,
+        anchor: const Offset(0.5, 0.8), // center the icon
       ),
     );
 
@@ -216,6 +216,13 @@ class LocationService {
   // delete map marker
   void deleteMarker(Marker marker) {
     markers.remove(marker);
+    _saveMarkersToFile();
+    updatePolylines();
+  }
+
+  // clear all markers
+  void deleteAllMarkers() {
+    markers.clear();
     _saveMarkersToFile();
     updatePolylines();
   }
