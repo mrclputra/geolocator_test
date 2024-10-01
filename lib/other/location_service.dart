@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -56,7 +57,8 @@ class LocationService {
     // create a polyline said points
     final Polyline polyline = Polyline(
       polylineId: polylineId,
-      color: const ui.Color.fromARGB(255, 209, 39, 26), // set polyline color here
+      // color: const ui.Color.fromARGB(255, 14, 97, 165), // set polyline color here
+      color: Colors.red,
       points: points,
       width: 6,
     );
