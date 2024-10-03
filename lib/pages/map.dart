@@ -60,12 +60,15 @@ class _MapPageState extends State<MapPage> {
       return;
     }
 
-    await _locationService.saveLocationData();
+    await _locationService.downloadLocationDataToDevice();
     print("Saving location: ${_locationService.currentPosition}");
 
     setState(() {
       _locationService.message = 'Location Saved';
     });
+
+    // // upload to server
+    // await _locationService.uploadLocationDataToFirebase();
   }
 
   // this runs on page initialization
@@ -89,7 +92,6 @@ class _MapPageState extends State<MapPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            // map widget here
             Expanded(
               flex: 2,
               child: GoogleMap(
@@ -102,21 +104,18 @@ class _MapPageState extends State<MapPage> {
                   _mapController = controller;
                 },
                 markers: {
-                  // add the current position marker if available
                   if (_locationService.currentPosition != null)
                     Marker(
                       markerId: const MarkerId('current_position'),
                       position: _locationService.currentPosition!,
                       infoWindow: const InfoWindow(title: 'My Position'),
-                      icon: BitmapDescriptor.defaultMarker, // set default
+                      icon: BitmapDescriptor.defaultMarker,
                     ),
-                  // add custom markers from LocationService
                   ..._locationService.markers,
                 },
                 polylines: Set<Polyline>.of(_locationService.polyLines.values),
               ),
             ),
-            // Indicator text
             Padding(
               padding: const EdgeInsets.only(top: 25, bottom: 10),
               child: Text(
@@ -156,15 +155,15 @@ class _MapPageState extends State<MapPage> {
                               foregroundColor: Colors.white,
                               backgroundColor: const Color.fromARGB(255, 34, 34, 34),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                              minimumSize: const Size(150, 45),
+                              minimumSize: const Size(100, 45),
                             ),
-                            onPressed: _refreshLocation, // update location function
+                            onPressed: _refreshLocation,
                             child: const Text(
                               'Track',
                               style: TextStyle(fontSize: 16),
                             ),
                           ),
-                          const SizedBox(width: 20), // Row padding
+                          const SizedBox(width: 20),
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               foregroundColor: const Color.fromARGB(255, 34, 34, 34),
@@ -173,12 +172,33 @@ class _MapPageState extends State<MapPage> {
                                 borderRadius: BorderRadius.circular(10),
                                 side: const BorderSide(color: Color.fromARGB(255, 34, 34, 34), width: 2),
                               ),
-                              minimumSize: const Size(80, 45),
+                              minimumSize: const Size(50, 45),
                             ),
-                            onPressed: _saveLocation, // Save to storage function
+                            onPressed: _saveLocation,
                             child: const Text(
                               'Save',
                               style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                          const SizedBox(width: 20),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: const Color.fromARGB(255, 34, 34, 34),
+                              backgroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                side: const BorderSide(color: Color.fromARGB(255, 34, 34, 34), width: 2),
+                              ),
+                              minimumSize: const Size(50, 45),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _locationService.findClosestMarker();
+                              });
+                            },
+                            child: const Text(
+                              'Get Closest',
+                              style: TextStyle(fontSize: 14),
                             ),
                           ),
                         ],

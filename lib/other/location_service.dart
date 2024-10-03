@@ -82,7 +82,7 @@ class LocationService {
     _customWaypointMarker = BitmapDescriptor.fromBytes(markerIcon);
   }
 
-  // update current location
+  // update current map location
   Future<void> updateLocation() async {
     try {
       // check if location services are enabled
@@ -120,9 +120,9 @@ class LocationService {
     }
   }
 
-  // save location history to excel
-  Future<void> saveLocationData() async {
-    final file = await _getExcelFile();
+  // save location history to device '/downloads'
+  Future<void> downloadLocationDataToDevice() async {
+    final file = await _getLocationDataLocalPath();
     var excel = Excel.createExcel();
 
     if (await file.exists()) {
@@ -144,12 +144,29 @@ class LocationService {
     await file.writeAsBytes(excel.save()!);
   }
 
-  // get directory of excel file
-  Future<File> _getExcelFile() async {
+  // get directory of local location data excel file
+  Future<File> _getLocationDataLocalPath() async {
     final directory = await getApplicationDocumentsDirectory();
     final path = '${directory.path}/location_data.xlsx';
     return File(path);
   }
+
+  // Future<void> uploadLocationDataToFirebase() async {
+  //   try {
+  //     final file = await _getLocationDataLocalPath();
+
+  //     if(!await file.exists()) {
+  //       print('File does not exist');
+  //       return;
+  //     }
+
+  //     // upload to firebase storage
+  //     final storageRef = FirebaseStorage.instance.ref().child('location_data/location_data.xlsx');
+  //     await storageRef.putFile(file);
+  //   } catch(e) {
+  //     print('Failed to upload file: $e');
+  //   }
+  // }
 
   // save markers to persistent file
   Future<void> _saveMarkersToFile() async {
@@ -227,5 +244,40 @@ class LocationService {
     markers.clear();
     _saveMarkersToFile();
     updatePolylines();
+  }
+
+  // Find the closest marker and update the message
+  void findClosestMarker() {
+    if (markers.isEmpty) {
+      message = 'No Markers';
+      return;
+    } else if (_currentPosition == null) {
+      message = 'Current Position Unknown';
+      return;
+    }
+
+    Marker? closestMarker; // Change to nullable
+    double closestDistance = double.infinity;
+
+    for (Marker marker in markers) {
+      double distance = Geolocator.distanceBetween(
+        _currentPosition!.latitude,
+        _currentPosition!.longitude,
+        marker.position.latitude,
+        marker.position.longitude,
+      );
+
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestMarker = marker; // Assign marker to nullable variable
+      }
+    }
+
+    // Check if a closest marker was found
+    if (closestMarker != null) {
+      message = 'Closest Marker: ${closestMarker.markerId.value}, Distance: ${closestDistance.toStringAsFixed(2)} meters';
+    } else {
+      message = 'No markers found.';
+    }
   }
 }
